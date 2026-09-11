@@ -341,3 +341,192 @@ body{
 	.seef-brand>span:last-child{display:none}
 	.seef-header-actions button,.seef-icon-link{width:38px;height:38px}
 }
+
+/* SEEF STORE logo */
+.seef-brand {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.seef-brand-logo {
+    display: block;
+    width: auto;
+    height: 56px;
+    max-width: 190px;
+    object-fit: contain;
+}
+
+@media (max-width: 768px) {
+    .seef-brand-logo {
+        height: 46px;
+        max-width: 155px;
+    }
+}
+
+@media (max-width: 620px) {
+    .seef-brand-logo {
+        height: 40px;
+        max-width: 135px;
+    }
+}
+/* ==========================================================
+   SEEF STORE - BRAND LOGO
+   ========================================================== */
+
+.seef-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.seef-brand-logo {
+    display: block !important;
+    width: auto !important;
+    height: 58px !important;
+    max-width: 210px !important;
+    object-fit: contain;
+    object-position: left center;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Footer */
+.seef-brand--footer {
+    display: inline-flex;
+    margin-bottom: 18px;
+}
+
+.seef-brand-logo--footer {
+    display: block !important;
+    width: auto !important;
+    height: 72px !important;
+    max-width: 240px !important;
+    object-fit: contain;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .seef-brand-logo {
+        height: 48px !important;
+        max-width: 170px !important;
+    }
+
+    .seef-brand-logo--footer {
+        height: 60px !important;
+        max-width: 200px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .seef-brand-logo {
+        height: 42px !important;
+        max-width: 150px !important;
+    }
+
+    .seef-brand-logo--footer {
+        height: 54px !important;
+        max-width: 180px !important;
+    }
+}
+/* ===== HEADER LOGO FIX ===== */
+.site-header .seef-header-inner > .seef-brand {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    height: 70px !important;
+    overflow: hidden !important;
+    flex: 0 0 180px !important;
+}
+
+.site-header .seef-brand-logo {
+    display: block !important;
+    width: 180px !important;
+    height: 70px !important;
+    max-width: none !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+@media (max-width: 768px) {
+    .site-header .seef-header-inner > .seef-brand {
+        width: 120px !important;
+        min-width: 120px !important;
+        height: 54px !important;
+        flex-basis: 120px !important;
+    }
+
+    .site-header .seef-brand-logo {
+        width: 120px !important;
+        height: 54px !important;
+    }
+}
+
+/* =========================================================
+   HEADER BRAND — logo à gauche de la recherche
+   Ne concerne PAS le bloc éditorial "L'idée SEEF"
+   ========================================================= */
+
+.site-header .seef-header-inner {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.site-header .seef-header-inner > .seef-brand {
+    display: block !important;
+    width: 220px !important;
+    min-width: 220px !important;
+    height: 72px !important;
+    flex: 0 0 220px !important;
+
+    background-image: url("../images/logo-seef-store-v3.png") !important;
+    background-repeat: no-repeat !important;
+    background-position: center left !important;
+    background-size: contain !important;
+
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/*
+ * L'image <img> existe toujours dans le HTML,
+ * mais le background ci-dessus garantit l'affichage.
+ */
+.site-header .seef-header-inner > .seef-brand .seef-brand-logo {
+    display: none !important;
+}
+
+/* La recherche occupe ensuite l'espace disponible */
+.site-header .seef-desktop-search {
+    flex: 1 1 auto !important;
+}
+
+/* Ne jamais modifier le visuel "L'idée SEEF" */
+.seef-editorial-art,
+.seef-editorial-disc {
+    visibility: visible;
+}
+
+@media (max-width: 900px) {
+    .site-header .seef-header-inner > .seef-brand {
+        width: 170px !important;
+        min-width: 170px !important;
+        height: 60px !important;
+        flex-basis: 170px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-header .seef-header-inner > .seef-brand {
+        width: 120px !important;
+        min-width: 120px !important;
+        height: 52px !important;
+        flex-basis: 120px !important;
+    }
+}

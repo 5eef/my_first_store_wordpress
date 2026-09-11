@@ -5,7 +5,8 @@
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<?php wp_head(); ?>
+	<link rel="icon" type="image/png" href="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-seef-store-v3.png?v=3' ); ?>">
+<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
@@ -13,7 +14,16 @@
 <div class="seef-announcement"><div class="seef-shell"><span><?php esc_html_e( 'Livraison offerte dès 1 000 MAD', 'seef-store' ); ?></span><span><?php esc_html_e( 'Expérience e-commerce de démonstration — aucun paiement réel', 'seef-store' ); ?></span></div></div>
 <header class="site-header" data-site-header>
 	<div class="seef-shell seef-header-inner">
-		<a class="seef-brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" aria-label="SEEF STORE — <?php esc_attr_e( 'Accueil', 'seef-store' ); ?>"><span class="seef-brand-mark" aria-hidden="true">S</span><span>SEEF <b>STORE</b></span></a>
+		<a
+         class="seef-brand"
+         href="<?php echo esc_url( home_url( '/' ) ); ?>"
+		>
+         <img
+             class="seef-brand-logo"
+             src="<?php echo esc_url( get_template_directory_uri() . '/assets/images/logo-seef-store-v3.png' ); ?>"
+             alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"
+         >
+     </a>
 		<div class="seef-desktop-search"><?php get_search_form(); ?></div>
 		<div class="seef-header-actions">
 			<button class="seef-menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation"><?php echo seef_store_icon( 'menu' ); ?><span class="screen-reader-text"><?php esc_html_e( 'Ouvrir le menu', 'seef-store' ); ?></span></button>
@@ -33,9 +43,14 @@
 			<div class="seef-category-menu">
 				<a class="seef-category-trigger" href="<?php echo esc_url( function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/boutique/' ) ); ?>"><?php echo seef_store_icon( 'grid' ); ?><?php esc_html_e( 'Catégories', 'seef-store' ); ?><?php echo seef_store_icon( 'chevron', 'seef-icon-chevron' ); ?></a>
 				<div class="seef-category-dropdown">
-					<?php foreach ( array( 'tech', 'accessoires', 'workspace', 'lifestyle' ) as $category_slug ) : $category = get_term_by( 'slug', $category_slug, 'product_cat' ); if ( ! $category ) { continue; } ?>
-						<a href="<?php echo esc_url( get_term_link( $category ) ); ?>"><span><?php echo esc_html( $category->name ); ?></span><small><?php echo esc_html( sprintf( _n( '%d produit', '%d produits', (int) $category->count, 'seef-store' ), (int) $category->count ) ); ?></small></a>
-					<?php endforeach; ?>
+					<?php $header_categories = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => true, 'orderby' => 'name', 'order' => 'ASC' ) ); ?>
+					<?php if ( ! is_wp_error( $header_categories ) && $header_categories ) : ?>
+						<?php foreach ( $header_categories as $category ) : ?>
+							<a href="<?php echo esc_url( get_term_link( $category ) ); ?>"><span><?php echo esc_html( $category->name ); ?></span><small><?php echo esc_html( sprintf( _n( '%d produit', '%d produits', (int) $category->count, 'seef-store' ), (int) $category->count ) ); ?></small></a>
+						<?php endforeach; ?>
+					<?php else : ?>
+						<span><?php esc_html_e( 'Aucune catégorie disponible.', 'seef-store' ); ?></span>
+					<?php endif; ?>
 				</div>
 			</div>
 			<nav id="primary-navigation" class="seef-primary-nav" aria-label="<?php esc_attr_e( 'Navigation principale', 'seef-store' ); ?>">

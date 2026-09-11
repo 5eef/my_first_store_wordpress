@@ -27,6 +27,8 @@ final class Theme {
 		add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'product_new_badge' ), 11 );
 		add_action( 'woocommerce_before_shop_loop_item_title', array( $this, 'product_stock_badge' ), 12 );
 		add_action( 'woocommerce_single_product_summary', array( $this, 'product_reassurance' ), 35 );
+		add_action( 'woocommerce_before_shop_loop', array( $this, 'shop_filters' ), 15 );
+		add_action( 'pre_get_posts', array( $this, 'filter_shop_query' ) );
 		add_filter( 'loop_shop_per_page', static fn(): int => 12 );
 		add_filter( 'woocommerce_output_related_products_args', static fn( array $args ): array => array_merge( $args, array( 'posts_per_page' => 4, 'columns' => 4 ) ) );
 		add_action( 'init', array( $this, 'woocommerce_wrappers' ) );
@@ -228,6 +230,89 @@ final class Theme {
 			<li><span aria-hidden="true"><?php echo seef_store_icon( 'sparkles' ); ?></span><?php esc_html_e( 'Assistance via le formulaire sécurisé', 'seef-store' ); ?></li>
 		</ul>
 		<?php
+	}
+
+	public function shop_filters(): void {
+		$categories = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'hide_empty' => true,
+				'orderby'    => 'name',
+				'order'      => 'ASC',
+			)
+		);
+		$selected_category = isset( $_GET['seef_category'] ) ? sanitize_title( wp_unslash( $_GET['seef_category'] ) ) : '';
+		$min_price         = isset( $_GET['min_price'] ) ? wc_format_decimal( wp_unslash( $_GET['min_price'] ) ) : '';
+		$max_price         = isset( $_GET['max_price'] ) ? wc_format_decimal( wp_unslash( $_GET['max_price'] ) ) : '';
+		$in_stock          = isset( $_GET['in_stock'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['in_stock'] ) );
+		?>
+		<form class="seef-shop-filters" method="get" action="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>">
+			<strong><?php esc_html_e( 'Filtrer les produits', 'seef-store' ); ?></strong>
+			<fieldset>
+				<legend><?php esc_html_e( 'Catégories', 'seef-store' ); ?></legend>
+				<?php if ( ! is_wp_error( $categories ) && $categories ) : ?>
+					<?php foreach ( $categories as $category ) : ?>
+						<label class="seef-check">
+							<input type="radio" name="seef_category" value="<?php echo esc_attr( $category->slug ); ?>" <?php checked( $selected_category, $category->slug ); ?>>
+							<span><?php echo esc_html( $category->name ); ?></span>
+							<small><?php echo esc_html( (string) $category->count ); ?></small>
+						</label>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<span class="seef-filter-empty"><?php esc_html_e( 'Aucune catégorie disponible.', 'seef-store' ); ?></span>
+				<?php endif; ?>
+			</fieldset>
+			<label>
+				<span><?php esc_html_e( 'Prix minimum', 'seef-store' ); ?></span>
+				<input type="number" name="min_price" min="0" step="0.01" value="<?php echo esc_attr( $min_price ); ?>">
+			</label>
+			<label>
+				<span><?php esc_html_e( 'Prix maximum', 'seef-store' ); ?></span>
+				<input type="number" name="max_price" min="0" step="0.01" value="<?php echo esc_attr( $max_price ); ?>">
+			</label>
+			<label class="seef-check"><input type="checkbox" name="in_stock" value="1" <?php checked( $in_stock ); ?>><span><?php esc_html_e( 'En stock uniquement', 'seef-store' ); ?></span></label>
+			<button class="seef-button" type="submit"><?php esc_html_e( 'Appliquer', 'seef-store' ); ?></button>
+			<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Réinitialiser', 'seef-store' ); ?></a>
+		</form>
+		<?php
+	}
+
+	public function filter_shop_query( \WP_Query $query ): void {
+		if ( is_admin() || ! $query->is_main_query() || ! function_exists( 'is_shop' ) || ( ! is_shop() && ! is_product_taxonomy() ) ) {
+			return;
+		}
+
+		$tax_query = (array) $query->get( 'tax_query' );
+		$category  = isset( $_GET['seef_category'] ) ? sanitize_title( wp_unslash( $_GET['seef_category'] ) ) : '';
+		if ( $category ) {
+			$tax_query[] = array(
+				'taxonomy' => 'product_cat',
+				'field'    => 'slug',
+				'terms'    => $category,
+			);
+		}
+		if ( count( $tax_query ) > 1 && ! isset( $tax_query['relation'] ) ) {
+			$tax_query['relation'] = 'AND';
+		}
+		if ( $tax_query ) {
+			$query->set( 'tax_query', $tax_query );
+		}
+
+		$meta_query = (array) $query->get( 'meta_query' );
+		$min_price  = isset( $_GET['min_price'] ) ? (float) wc_format_decimal( wp_unslash( $_GET['min_price'] ) ) : 0;
+		$max_price  = isset( $_GET['max_price'] ) ? (float) wc_format_decimal( wp_unslash( $_GET['max_price'] ) ) : 0;
+		if ( $min_price > 0 ) {
+			$meta_query[] = array( 'key' => '_price', 'value' => $min_price, 'compare' => '>=', 'type' => 'NUMERIC' );
+		}
+		if ( $max_price > 0 ) {
+			$meta_query[] = array( 'key' => '_price', 'value' => $max_price, 'compare' => '<=', 'type' => 'NUMERIC' );
+		}
+		if ( isset( $_GET['in_stock'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['in_stock'] ) ) ) {
+			$meta_query[] = array( 'key' => '_stock_status', 'value' => 'instock' );
+		}
+		if ( $meta_query ) {
+			$query->set( 'meta_query', $meta_query );
+		}
 	}
 
 	public function woocommerce_wrappers(): void {
