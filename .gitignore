@@ -1,0 +1,22 @@
+# Local WordPress configuration and secrets
+wp-config.php
+.env
+.env.*
+!.env.example
+
+# Runtime files
+wp-content/debug.log
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+
+# Local backups and database exports
+*.sql
+*.sql.gz
+*.bak
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
