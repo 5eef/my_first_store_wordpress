@@ -7,27 +7,41 @@
   const searchButton = document.querySelector('.seef-search-toggle');
   const searchPanel = document.querySelector('.seef-header-search');
   const themeButton = document.querySelector('.seef-theme-toggle');
+  const siteHeader = document.querySelector('[data-site-header]');
 
-  const setMenu = (open) => {
+  const setMenu = (open, restoreFocus = false) => {
     if (!menuButton || !navigation) return;
     menuButton.setAttribute('aria-expanded', String(open));
     navigation.classList.toggle('is-open', open);
     document.body.classList.toggle('menu-open', open);
     const label = menuButton.querySelector('.screen-reader-text');
     if (label) label.textContent = open ? seefStore.menuClose : seefStore.menuOpen;
+    if (!open && restoreFocus) menuButton.focus();
   };
 
-  menuButton?.addEventListener('click', () => setMenu(menuButton.getAttribute('aria-expanded') !== 'true'));
+  const setSearch = (open, restoreFocus = false) => {
+    if (!searchButton || !searchPanel) return;
+    searchPanel.hidden = !open;
+    searchButton.setAttribute('aria-expanded', String(open));
+    if (open) {
+      setMenu(false);
+      searchPanel.querySelector('input[type="search"]')?.focus();
+    } else if (restoreFocus) {
+      searchButton.focus();
+    }
+  };
+
+  menuButton?.addEventListener('click', () => {
+    const open = menuButton.getAttribute('aria-expanded') !== 'true';
+    if (open) setSearch(false);
+    setMenu(open);
+  });
   navigation?.addEventListener('click', (event) => {
     if (event.target instanceof HTMLAnchorElement) setMenu(false);
   });
 
   searchButton?.addEventListener('click', () => {
-    if (!searchPanel) return;
-    const open = searchPanel.hidden;
-    searchPanel.hidden = !open;
-    searchButton.setAttribute('aria-expanded', String(open));
-    if (open) searchPanel.querySelector('input[type="search"]')?.focus();
+    setSearch(Boolean(searchPanel?.hidden));
   });
 
   themeButton?.addEventListener('click', () => {
@@ -45,12 +59,17 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      setMenu(false);
-      if (searchPanel && !searchPanel.hidden) {
-        searchPanel.hidden = true;
-        searchButton?.setAttribute('aria-expanded', 'false');
-      }
+      const menuWasOpen = menuButton?.getAttribute('aria-expanded') === 'true';
+      const searchWasOpen = searchPanel ? !searchPanel.hidden : false;
+      setMenu(false, menuWasOpen);
+      setSearch(false, searchWasOpen);
     }
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Node) || siteHeader?.contains(event.target)) return;
+    setMenu(false);
+    setSearch(false);
   });
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

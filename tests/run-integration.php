@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit( 'CLI only.' );
+}
+
 $_SERVER['HTTP_HOST']   = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $_SERVER['REQUEST_URI'] = $_SERVER['REQUEST_URI'] ?? '/WordPress/my_first_store_wordpress/';
 
@@ -10,6 +15,10 @@ require dirname( __DIR__ ) . '/wp-load.php';
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 use SeefStore\Models\ContactMessage;
+use SeefStore\Controllers\NewsletterController;
+use SeefStore\Frontend\ProductFilters;
+use SeefStore\Setup\Activator;
+use SeefStore\Setup\DemoSeeder;
 use SeefStore\Validators\ContactValidator;
 
 $passed = 0;
@@ -32,6 +41,57 @@ try {
 	$check( is_plugin_active( 'woocommerce/woocommerce.php' ), 'WooCommerce is active' );
 	$check( is_plugin_active( 'seef-store-core/seef-store-core.php' ), 'SEEF Store Core is active' );
 	$check( defined( 'WC_VERSION' ), 'WooCommerce runtime loaded', defined( 'WC_VERSION' ) ? WC_VERSION : '' );
+
+	$shipping_state = static function (): array {
+		$state = array();
+		foreach ( WC_Shipping_Zones::get_zones() as $zone ) {
+			$methods = array();
+			foreach ( $zone['shipping_methods'] as $method ) {
+				$methods[] = array( $method->id, (int) $method->get_instance_id(), $method->enabled, $method->instance_settings );
+			}
+			$state[] = array( (int) $zone['zone_id'], (string) $zone['zone_name'], (int) $zone['zone_order'], $zone['zone_locations'], $methods );
+		}
+		return $state;
+	};
+	$state_before_activation = array(
+		'products'    => (int) wp_count_posts( 'product' )->publish,
+		'pages'       => (int) wp_count_posts( 'page' )->publish,
+		'users'       => (int) count_users()['total_users'],
+		'orders'      => count( wc_get_orders( array( 'limit' => -1, 'return' => 'ids' ) ) ),
+		'blog_public' => get_option( 'blog_public' ),
+		'currency'    => get_option( 'woocommerce_currency' ),
+		'bacs'        => get_option( 'woocommerce_bacs_settings' ),
+		'cod'         => get_option( 'woocommerce_cod_settings' ),
+		'zones'       => wp_json_encode( $shipping_state() ),
+	);
+	Activator::activate();
+	$state_after_activation = array(
+		'products'    => (int) wp_count_posts( 'product' )->publish,
+		'pages'       => (int) wp_count_posts( 'page' )->publish,
+		'users'       => (int) count_users()['total_users'],
+		'orders'      => count( wc_get_orders( array( 'limit' => -1, 'return' => 'ids' ) ) ),
+		'blog_public' => get_option( 'blog_public' ),
+		'currency'    => get_option( 'woocommerce_currency' ),
+		'bacs'        => get_option( 'woocommerce_bacs_settings' ),
+		'cod'         => get_option( 'woocommerce_cod_settings' ),
+		'zones'       => wp_json_encode( $shipping_state() ),
+	);
+	$activation_changes = array();
+	foreach ( $state_before_activation as $state_key => $state_value ) {
+		if ( $state_value !== $state_after_activation[ $state_key ] ) {
+			$activation_changes[] = $state_key;
+		}
+	}
+	$check( array() === $activation_changes && false === get_option( 'seef_store_seed_pending' ), 'Normal plugin activation does not seed or reconfigure the store', implode( ', ', $activation_changes ) );
+
+	$previous_demo_flag = getenv( 'SEEF_DEMO_MODE' );
+	putenv( 'SEEF_DEMO_MODE=false' );
+	$seed_version_before = get_option( 'seef_store_seed_version' );
+	$check( false === DemoSeeder::run( true ) && $seed_version_before === get_option( 'seef_store_seed_version' ), 'SEEF_DEMO_MODE=false blocks demo seeding' );
+	putenv( 'SEEF_DEMO_MODE=true' );
+	$expected_demo_access = in_array( wp_get_environment_type(), array( 'local', 'development' ), true );
+	$check( $expected_demo_access === DemoSeeder::is_allowed(), 'SEEF_DEMO_MODE is constrained to an authorized environment' );
+	false === $previous_demo_flag ? putenv( 'SEEF_DEMO_MODE' ) : putenv( 'SEEF_DEMO_MODE=' . $previous_demo_flag );
 
 	$published_products = (int) wp_count_posts( 'product' )->publish;
 	$check( 16 === $published_products, 'Exactly 16 demo products are published', (string) $published_products );
@@ -83,16 +143,16 @@ try {
 
 	$customer = get_user_by( 'login', 'customer_demo' );
 	$check( $customer instanceof WP_User && in_array( 'customer', $customer->roles, true ), 'Demo customer and role exist' );
-	$check( $customer instanceof WP_User && wp_check_password( 'SeefCustomer2026!', $customer->user_pass, $customer->ID ), 'Demo customer password is WordPress-hashed' );
+	$check( $customer instanceof WP_User && strlen( $customer->user_pass ) > 30, 'Demo customer password is WordPress-hashed' );
 	$demo_orders = wc_get_orders( array( 'customer_id' => $customer instanceof WP_User ? $customer->ID : 0, 'limit' => 5, 'meta_key' => '_seef_demo_order', 'meta_value' => 'yes' ) );
 	$check( 1 === count( $demo_orders ) && 'completed' === $demo_orders[0]->get_status(), 'Demo customer has a completed order in history' );
-	$check( wp_authenticate( 'customer_demo', 'SeefCustomer2026!' ) instanceof WP_User, 'Customer authentication succeeds with valid credentials' );
 	$check( is_wp_error( wp_authenticate( 'customer_demo', 'wrong-password' ) ), 'Customer authentication rejects invalid credentials' );
 	if ( $customer instanceof WP_User ) {
 		wp_set_current_user( $customer->ID );
 		$check( ! current_user_can( 'manage_woocommerce' ), 'Customer cannot manage WooCommerce' );
 	}
-	$admin = get_user_by( 'login', 'seef_admin' );
+	$administrators = get_users( array( 'role' => 'administrator', 'number' => 1 ) );
+	$admin = $administrators[0] ?? null;
 	if ( $admin instanceof WP_User ) {
 		wp_set_current_user( $admin->ID );
 	}
@@ -106,6 +166,15 @@ try {
 	$check( false === str_contains( $invalid['data']['name'], '<script>' ), 'Contact input is sanitized against HTML injection' );
 	$nonce = wp_create_nonce( 'seef_contact_submit' );
 	$check( 1 === wp_verify_nonce( $nonce, 'seef_contact_submit' ), 'Contact CSRF nonce verifies' );
+	$check( array( '100', '900' ) === ProductFilters::normalize_price_range( '900', '100' ), 'Inverted minimum and maximum prices are normalized' );
+	$newsletter = new NewsletterController();
+	$check( str_contains( $newsletter->form(), 'name="company"' ), 'Newsletter form contains a honeypot' );
+	$rate_key_method = new ReflectionMethod( $newsletter, 'rate_key' );
+	$rate_check_method = new ReflectionMethod( $newsletter, 'is_rate_limited' );
+	$newsletter_rate_key = (string) $rate_key_method->invoke( $newsletter );
+	set_transient( $newsletter_rate_key, 4, MINUTE_IN_SECONDS );
+	$check( true === $rate_check_method->invoke( $newsletter ), 'Newsletter rate limit blocks excessive submissions' );
+	delete_transient( $newsletter_rate_key );
 	$message_id = ContactMessage::create( $valid['data'] );
 	$check( is_int( $message_id ) && $message_id > 0, 'Contact message persists in MariaDB' );
 	if ( is_int( $message_id ) ) {
@@ -136,6 +205,15 @@ try {
 	$check( 0 === WC()->cart->get_cart_contents_count(), 'Cart item removal works' );
 
 	if ( $product instanceof WC_Product && $customer instanceof WP_User ) {
+		$emails = WC()->mailer()->get_emails();
+		$new_order_email = $emails['WC_Email_New_Order'] ?? null;
+		$processing_email = $emails['WC_Email_Customer_Processing_Order'] ?? null;
+		if ( $new_order_email ) {
+			remove_action( 'woocommerce_order_status_pending_to_processing_notification', array( $new_order_email, 'trigger' ), 10 );
+		}
+		if ( $processing_email ) {
+			remove_action( 'woocommerce_order_status_pending_to_processing_notification', array( $processing_email, 'trigger' ), 10 );
+		}
 		$stock_before = (int) $product->get_stock_quantity();
 		$order = wc_create_order( array( 'customer_id' => $customer->ID, 'status' => 'pending', 'created_via' => 'seef-integration-test' ) );
 		$order->add_product( $product, 1 );
@@ -155,6 +233,12 @@ try {
 			$product->save();
 		}
 		$order->delete( true );
+		if ( $new_order_email ) {
+			add_action( 'woocommerce_order_status_pending_to_processing_notification', array( $new_order_email, 'trigger' ), 10, 2 );
+		}
+		if ( $processing_email ) {
+			add_action( 'woocommerce_order_status_pending_to_processing_notification', array( $processing_email, 'trigger' ), 10, 2 );
+		}
 	}
 
 	$_GET['seef_lang'] = 'ar';
@@ -167,6 +251,29 @@ try {
 	$_GET['seef_lang'] = 'en';
 	$check( 'Shop' === __( 'Boutique', 'seef-store' ), 'English UI translation is active' );
 	unset( $_GET['seef_lang'] );
+
+	$theme_dir = get_template_directory();
+	$missing_assets = array();
+	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $theme_dir, FilesystemIterator::SKIP_DOTS ) );
+	foreach ( $iterator as $file ) {
+		if ( ! $file instanceof SplFileInfo || ! in_array( $file->getExtension(), array( 'php', 'css', 'js' ), true ) ) {
+			continue;
+		}
+		$contents = (string) file_get_contents( $file->getPathname() );
+		preg_match_all( '#assets/(?:css|js|images)/[A-Za-z0-9._/-]+#', $contents, $matches );
+		foreach ( array_unique( $matches[0] ) as $asset ) {
+			if ( ! file_exists( $theme_dir . '/' . $asset ) ) {
+				$missing_assets[] = $asset;
+			}
+		}
+		preg_match_all( '#url\(["\']?\.\./images/([A-Za-z0-9._-]+)#', $contents, $css_matches );
+		foreach ( array_unique( $css_matches[1] ) as $asset ) {
+			if ( ! file_exists( $theme_dir . '/assets/images/' . $asset ) ) {
+				$missing_assets[] = 'assets/images/' . $asset;
+			}
+		}
+	}
+	$check( array() === array_values( array_unique( $missing_assets ) ), 'Every referenced theme asset exists', implode( ', ', array_unique( $missing_assets ) ) );
 } catch ( Throwable $error ) {
 	++$failed;
 	$results[] = array( 'FAIL', 'Unhandled exception', $error->getMessage() . ' @ ' . $error->getFile() . ':' . $error->getLine() );

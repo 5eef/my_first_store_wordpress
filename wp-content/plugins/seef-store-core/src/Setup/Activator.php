@@ -11,7 +11,8 @@ final class Activator {
 			wp_die( esc_html__( 'WooCommerce doit être actif avant SEEF Store Core.', 'seef-store-core' ) );
 		}
 
-		update_option( 'seef_store_seed_pending', 'yes' );
+		// Remove the legacy activation flag without ever creating demo content.
+		delete_option( 'seef_store_seed_pending' );
 		flush_rewrite_rules();
 	}
 

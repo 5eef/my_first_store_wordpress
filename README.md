@@ -57,9 +57,14 @@ Prérequis : XAMPP, PHP 8.1+, Apache avec `mod_rewrite`, MariaDB/MySQL et les ex
 4. Initialiser le projet :
 
 ```powershell
+$env:SEEF_ADMIN_USER = 'votre_admin_local'
+$env:SEEF_ADMIN_PASSWORD = 'un-mot-de-passe-local-fort'
 C:\xampp\php\php.exe tools\bootstrap-wordpress.php
+$env:SEEF_DEMO_MODE = 'true'
 C:\xampp\php\php.exe tools\configure-store.php
 ```
+
+Si `SEEF_ADMIN_PASSWORD` est omis, le bootstrap génère un mot de passe fort et l’affiche une seule fois dans le terminal. Le seeding est refusé sans `SEEF_DEMO_MODE=true` et hors environnement WordPress `local`/`development`; une activation normale du plugin ne crée ni ne reconfigure aucune donnée.
 
 5. Ouvrir `http://localhost/WordPress/my_first_store_wordpress/`.
 
@@ -69,6 +74,7 @@ Les paramètres de connexion peuvent être remplacés avec `SEEF_DB_NAME`, `SEEF
 
 ```powershell
 C:\xampp\php\php.exe tests\run-integration.php
+C:\xampp\php\php.exe tests\theme-helpers.php
 powershell -ExecutionPolicy Bypass -File tests\http-smoke.ps1
 C:\xampp\php\php.exe tests\contact-http.php
 C:\xampp\php\php.exe tests\admin-http.php
@@ -80,17 +86,29 @@ La suite vérifie notamment le catalogue, les stocks, le panier, les totaux, la 
 
 Le thème fournit des descriptions contextuelles, les URLs canoniques des archives WooCommerce, Open Graph, Twitter Cards et un schéma `OnlineStore`. WordPress complète les canoniques des contenus et le sitemap ; WooCommerce ajoute les données structurées produit.
 
-L’installation locale reste volontairement en `noindex`. Avant la publication, il faut remplacer les URLs locales, activer l’indexation, utiliser HTTPS, désactiver le debug et créer de nouveaux comptes. La procédure complète, y compris une option d’hébergement gratuit, se trouve dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+L’installation locale reste volontairement en `noindex`. Avant la publication, il faut remplacer les URLs locales, activer l’indexation, utiliser HTTPS, désactiver le debug et créer de nouveaux comptes. La procédure complète couvre aussi l’archive de release sans tests, secrets, `wp-config.php` ni `.htaccess` local dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Captures d’écran
 
-Le dossier `docs/screenshots/` est prévu pour :
+![Accueil SEEF STORE sur desktop](docs/screenshots/home-desktop.png)
 
-- `home-desktop.png` ;
-- `shop-mobile.png` ;
-- `product-dark.png` ;
-- `checkout.png` ;
-- `contact-rtl.png`.
+*Accueil en mode clair — viewport 1440 px.*
+
+![Boutique SEEF STORE sur mobile](docs/screenshots/shop-mobile.png)
+
+*Catalogue responsive — viewport 375 px.*
+
+![Fiche produit SEEF STORE en mode sombre](docs/screenshots/product-dark.png)
+
+*Fiche produit réelle en mode sombre.*
+
+![Checkout SEEF STORE](docs/screenshots/checkout.png)
+
+*Checkout WooCommerce avec un produit de démonstration.*
+
+![Contact SEEF STORE en arabe](docs/screenshots/contact-rtl.png)
+
+*Page contact en arabe avec mise en page RTL.*
 
 ## Auteur
 

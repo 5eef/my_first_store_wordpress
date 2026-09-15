@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit( 'CLI only.' );
+}
+
 $base       = 'http://localhost/WordPress/my_first_store_wordpress';
 $cookieFile = tempnam( sys_get_temp_dir(), 'seef-contact-' );
 $failures   = 0;
@@ -66,6 +71,30 @@ if ( $hasNonce ) {
 	$report( 302 === $badCode && str_contains( $badResponse, 'contact_status=security' ), 'Invalid nonce is rejected before persistence' );
 }
 
+$newsletter_email = 'newsletter-roundtrip-' . time() . '@example.test';
+$honeypot_email    = 'newsletter-honeypot-' . time() . '@example.test';
+list( $homeCode, $homePage ) = $request( $base . '/' );
+$hasNewsletterNonce = preg_match( '/name="seef_newsletter_nonce" value="([^"]+)"/', $homePage, $newsletterMatch );
+$report( 200 === $homeCode && 1 === $hasNewsletterNonce, 'Newsletter form exposes a WordPress nonce' );
+
+if ( $hasNewsletterNonce ) {
+	$newsletter_data = array(
+		'action'                  => 'seef_newsletter_submit',
+		'seef_newsletter_nonce' => html_entity_decode( $newsletterMatch[1], ENT_QUOTES ),
+		'company'                 => '',
+		'email'                   => $newsletter_email,
+	);
+	list( $newsletterCode, , $newsletterUrl ) = $request( $base . '/wp-admin/admin-post.php', $newsletter_data );
+	$report( 200 === $newsletterCode && str_contains( $newsletterUrl, 'newsletter_status=success' ), 'Valid newsletter subscription succeeds' );
+	list( $duplicateCode, , $duplicateUrl ) = $request( $base . '/wp-admin/admin-post.php', $newsletter_data );
+	$report( 200 === $duplicateCode && str_contains( $duplicateUrl, 'newsletter_status=success' ), 'Duplicate newsletter subscription remains idempotent' );
+	$honeypot_data = $newsletter_data;
+	$honeypot_data['company'] = 'Spam Company';
+	$honeypot_data['email']   = $honeypot_email;
+	list( $honeypotCode, , $honeypotUrl ) = $request( $base . '/wp-admin/admin-post.php', $honeypot_data );
+	$report( 200 === $honeypotCode && str_contains( $honeypotUrl, 'newsletter_status=success' ), 'Newsletter honeypot safely absorbs bot submissions' );
+}
+
 $_SERVER['HTTP_HOST'] = 'localhost';
 require dirname( __DIR__ ) . '/wp-load.php';
 $messages = get_posts( array( 'post_type' => 'seef_contact', 'post_status' => 'private', 'title' => 'Integration Contact Roundtrip', 'numberposts' => 1 ) );
@@ -75,6 +104,28 @@ if ( $messages ) {
 	wp_delete_post( $messages[0]->ID, true );
 }
 delete_transient( 'seef_contact_rate_' . substr( hash_hmac( 'sha256', '127.0.0.1', wp_salt( 'nonce' ) ), 0, 32 ) );
+
+$newsletter_posts = get_posts( array( 'post_type' => 'seef_subscriber', 'post_status' => 'private', 'title' => $newsletter_email, 'numberposts' => -1, 'fields' => 'ids' ) );
+$honeypot_posts    = get_posts( array( 'post_type' => 'seef_subscriber', 'post_status' => 'private', 'title' => $honeypot_email, 'numberposts' => -1, 'fields' => 'ids' ) );
+$report( 1 === count( $newsletter_posts ), 'Newsletter e-mail is stored only once' );
+$report( 0 === count( $honeypot_posts ), 'Newsletter honeypot e-mail is not stored' );
+foreach ( $newsletter_posts as $newsletter_post_id ) {
+	wp_delete_post( (int) $newsletter_post_id, true );
+}
+
+if ( $hasNewsletterNonce ) {
+	foreach ( array( '127.0.0.1', '::1' ) as $loopback ) {
+		$rate_key = 'seef_newsletter_rate_' . substr( hash_hmac( 'sha256', $loopback, wp_salt( 'nonce' ) ), 0, 32 );
+		set_transient( $rate_key, 4, MINUTE_IN_SECONDS );
+	}
+	$rate_data = $newsletter_data;
+	$rate_data['email'] = 'newsletter-rate-' . time() . '@example.test';
+	list( $rateCode, , $rateUrl ) = $request( $base . '/wp-admin/admin-post.php', $rate_data );
+	$report( 200 === $rateCode && str_contains( $rateUrl, 'newsletter_status=rate_limited' ), 'Newsletter rate limit rejects excessive submissions' );
+	foreach ( array( '127.0.0.1', '::1' ) as $loopback ) {
+		delete_transient( 'seef_newsletter_rate_' . substr( hash_hmac( 'sha256', $loopback, wp_salt( 'nonce' ) ), 0, 32 ) );
+	}
+}
 
 if ( is_string( $cookieFile ) && file_exists( $cookieFile ) ) {
 	unlink( $cookieFile );

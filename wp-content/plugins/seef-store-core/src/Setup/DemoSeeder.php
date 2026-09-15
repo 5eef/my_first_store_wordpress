@@ -7,31 +7,51 @@ namespace SeefStore\Setup;
 use SeefStore\Models\ContactMessage;
 
 final class DemoSeeder {
-	private const SEED_VERSION = '1.0.0';
+	private const SEED_VERSION = '1.0.1';
 
 	/** @var array<string,int> */
 	private static array $categories = array();
 
-	public static function run( bool $force = false ): void {
-		if ( ! $force && self::SEED_VERSION === get_option( 'seef_store_seed_version' ) ) {
-			return;
+	public static function is_allowed(): bool {
+		$flag = defined( 'SEEF_DEMO_MODE' ) ? SEEF_DEMO_MODE : getenv( 'SEEF_DEMO_MODE' );
+		$enabled = true === $flag || in_array( strtolower( (string) $flag ), array( '1', 'true', 'yes', 'on' ), true );
+
+		return $enabled && in_array( wp_get_environment_type(), array( 'local', 'development' ), true );
+	}
+
+	public static function run( bool $force = false ): bool {
+		if ( ! self::is_allowed() ) {
+			return false;
 		}
-		if ( ! class_exists( 'WooCommerce' ) || ! class_exists( 'WC_Product_Simple' ) ) {
-			return;
+		if ( ! $force && self::SEED_VERSION === get_option( 'seef_store_seed_version' ) ) {
+			return true;
+		}
+		if (
+			! did_action( 'woocommerce_init' )
+			|| ! class_exists( 'WooCommerce' )
+			|| ! class_exists( 'WC_Product_Simple' )
+			|| ! function_exists( 'WC' )
+			|| ! WC()
+			|| ! ( WC()->countries instanceof \WC_Countries )
+		) {
+			return false;
 		}
 
 		self::register_contact_type();
 		self::configure_store();
 		self::create_pages();
-		self::trash_generated_duplicate_pages();
 		self::create_categories();
 		self::create_products();
-		self::create_demo_customer();
+		if ( ! self::create_demo_customer() ) {
+			return false;
+		}
 		self::create_demo_order();
 		self::create_menu();
 		self::configure_shipping();
 		update_option( 'seef_store_seed_version', self::SEED_VERSION );
 		flush_rewrite_rules();
+
+		return true;
 	}
 
 	private static function register_contact_type(): void {
@@ -72,8 +92,8 @@ final class DemoSeeder {
 		$pages = array(
 			'home'      => array( 'Accueil', 'accueil', '', 'default' ),
 			'shop'      => array( 'Boutique', 'boutique', '', 'default' ),
-			'cart'      => array( 'Panier', 'panier', '<!-- wp:woocommerce/cart /-->', 'default' ),
-			'checkout'  => array( 'Commande', 'commande', '<!-- wp:woocommerce/checkout /-->', 'default' ),
+			'cart'      => array( 'Panier', 'panier', '[woocommerce_cart]', 'default' ),
+			'checkout'  => array( 'Commande', 'commande', '[woocommerce_checkout]', 'default' ),
 			'myaccount' => array( 'Mon compte', 'mon-compte', '[woocommerce_my_account]', 'default' ),
 			'about'     => array( 'À propos', 'a-propos', '', 'page-about.php' ),
 			'contact'   => array( 'Contact', 'contact', '[seef_contact_form]', 'page-contact.php' ),
@@ -90,6 +110,13 @@ final class DemoSeeder {
 			if ( is_wp_error( $id ) ) {
 				continue;
 			}
+			$legacy_content = array(
+				'cart'     => '<!-- wp:woocommerce/cart /-->',
+				'checkout' => '<!-- wp:woocommerce/checkout /-->',
+			);
+			if ( $page instanceof \WP_Post && isset( $legacy_content[ $key ] ) && trim( $page->post_content ) === $legacy_content[ $key ] ) {
+				wp_update_post( array( 'ID' => $page->ID, 'post_content' => $content ) );
+			}
 			$ids[ $key ] = (int) $id;
 			if ( 'default' !== $template ) {
 				update_post_meta( (int) $id, '_wp_page_template', $template );
@@ -104,16 +131,6 @@ final class DemoSeeder {
 		update_option( 'woocommerce_myaccount_page_id', $ids['myaccount'] ?? 0 );
 		update_option( 'seef_about_page_id', $ids['about'] ?? 0 );
 		update_option( 'seef_contact_page_id', $ids['contact'] ?? 0 );
-	}
-
-	private static function trash_generated_duplicate_pages(): void {
-		$configured = array_map( 'intval', array( get_option( 'page_on_front' ), get_option( 'woocommerce_shop_page_id' ), get_option( 'woocommerce_cart_page_id' ), get_option( 'woocommerce_checkout_page_id' ), get_option( 'woocommerce_myaccount_page_id' ), get_option( 'seef_about_page_id' ), get_option( 'seef_contact_page_id' ) ) );
-		foreach ( array( 'shop', 'cart', 'checkout', 'my-account', 'page-d-exemple' ) as $slug ) {
-			$page = get_page_by_path( $slug );
-			if ( $page instanceof \WP_Post && 'publish' === $page->post_status && ! in_array( $page->ID, $configured, true ) ) {
-				wp_trash_post( $page->ID );
-			}
-		}
 	}
 
 	private static function create_categories(): void {
@@ -155,7 +172,17 @@ final class DemoSeeder {
 
 		foreach ( $products as $index => $data ) {
 			list( $name, $sku, $price, $sale, $stock, $category, $accent, $short, $description, $material ) = $data;
-			if ( wc_get_product_id_by_sku( $sku ) ) {
+			$category_id = isset( self::$categories[ $category ] ) ? (int) self::$categories[ $category ] : 0;
+			$existing_id = (int) wc_get_product_id_by_sku( $sku );
+			if ( $existing_id > 0 ) {
+				$existing_product = wc_get_product( $existing_id );
+				if ( $existing_product instanceof \WC_Product && $category_id > 0 && $existing_product->get_category_ids() !== array( $category_id ) ) {
+					$existing_product->set_category_ids( array( $category_id ) );
+					$existing_product->save();
+				}
+				continue;
+			}
+			if ( $category_id <= 0 ) {
 				continue;
 			}
 			$product = new \WC_Product_Simple();
@@ -171,7 +198,7 @@ final class DemoSeeder {
 			$product->set_manage_stock( true );
 			$product->set_stock_quantity( $stock );
 			$product->set_stock_status( 'instock' );
-			$product->set_category_ids( array( self::$categories[ $category ] ) );
+			$product->set_category_ids( array( $category_id ) );
 			$product->set_tag_ids( self::tag_ids( array( 'SEEF Selection', $sale ? 'Promotion' : 'Nouveauté' ) ) );
 			$product->set_featured( $index < 6 );
 			$product->set_status( 'publish' );
@@ -232,16 +259,30 @@ final class DemoSeeder {
 		return 0;
 	}
 
-	private static function create_demo_customer(): void {
+	private static function create_demo_customer(): bool {
 		$user = get_user_by( 'login', 'customer_demo' );
 		if ( ! $user ) {
-			$id = wp_create_user( 'customer_demo', 'SeefCustomer2026!', 'customer@seef-store.local' );
+			$password  = (string) getenv( 'SEEF_DEMO_CUSTOMER_PASSWORD' );
+			$generated = '' === $password;
+			if ( $generated ) {
+				$password = wp_generate_password( 24, true, true );
+			} elseif ( strlen( $password ) < 12 ) {
+				return false;
+			}
+			$id = wp_create_user( 'customer_demo', $password, 'customer@seef-store.local' );
 			if ( is_wp_error( $id ) ) {
-				return;
+				return false;
+			}
+			if ( $generated && 'cli' === PHP_SAPI ) {
+				fwrite( STDOUT, "Generated demo customer password (shown once): {$password}\n" );
 			}
 			$user = get_user_by( 'id', $id );
+			if ( $user instanceof \WP_User ) {
+				update_user_meta( $user->ID, '_seef_demo_user', 'yes' );
+			}
 		}
-		if ( $user instanceof \WP_User ) {
+		if ( $user instanceof \WP_User && ( 'yes' === get_user_meta( $user->ID, '_seef_demo_user', true ) || 'customer@seef-store.local' === $user->user_email ) ) {
+			update_user_meta( $user->ID, '_seef_demo_user', 'yes' );
 			$user->set_role( 'customer' );
 			update_user_meta( $user->ID, 'first_name', 'Client' );
 			update_user_meta( $user->ID, 'last_name', 'Démo' );
@@ -249,7 +290,11 @@ final class DemoSeeder {
 			update_user_meta( $user->ID, 'billing_last_name', 'Démo' );
 			update_user_meta( $user->ID, 'billing_city', 'Marrakech' );
 			update_user_meta( $user->ID, 'billing_country', 'MA' );
+
+			return true;
 		}
+
+		return false;
 	}
 
 	private static function create_demo_order(): void {
@@ -259,7 +304,7 @@ final class DemoSeeder {
 		}
 		$customer = get_user_by( 'login', 'customer_demo' );
 		$product  = wc_get_product( wc_get_product_id_by_sku( 'SEEF-TECH-001' ) );
-		if ( ! $customer instanceof \WP_User || ! $product instanceof \WC_Product ) {
+		if ( ! ( $customer instanceof \WP_User ) || 'yes' !== get_user_meta( $customer->ID, '_seef_demo_user', true ) || ! ( $product instanceof \WC_Product ) ) {
 			return;
 		}
 		$order = wc_create_order( array( 'customer_id' => $customer->ID, 'status' => 'pending', 'created_via' => 'seef-demo-seeder' ) );
@@ -270,11 +315,11 @@ final class DemoSeeder {
 		$order->set_address( array( 'first_name' => 'Client', 'last_name' => 'Démo', 'address_1' => 'Adresse fictive — démonstration', 'city' => 'Marrakech', 'country' => 'MA', 'email' => 'customer@seef-store.local' ), 'billing' );
 		$order->set_address( array( 'first_name' => 'Client', 'last_name' => 'Démo', 'address_1' => 'Adresse fictive — démonstration', 'city' => 'Marrakech', 'country' => 'MA' ), 'shipping' );
 		$order->set_payment_method( 'bacs' );
+		$order->set_status( 'completed' );
 		$order->add_meta_data( '_seef_demo_order', 'yes', true );
 		$order->add_order_note( 'Commande fictive créée pour présenter l’historique client local.' );
 		$order->calculate_totals();
 		$order->save();
-		$order->update_status( 'completed', 'Commande de démonstration initialisée.', false );
 	}
 
 	private static function create_menu(): void {
@@ -296,6 +341,9 @@ final class DemoSeeder {
 	}
 
 	private static function configure_shipping(): void {
+		if ( ! did_action( 'woocommerce_init' ) || ! WC() || ! ( WC()->countries instanceof \WC_Countries ) ) {
+			return;
+		}
 		foreach ( \WC_Shipping_Zones::get_zones() as $zone_data ) {
 			if ( 'Maroc — Démonstration' === $zone_data['zone_name'] ) {
 				return;

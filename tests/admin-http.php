@@ -3,6 +3,18 @@
 
 declare(strict_types=1);
 
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit( 'CLI only.' );
+}
+
+$admin_user = (string) getenv( 'SEEF_ADMIN_USER' );
+$admin_pass = (string) getenv( 'SEEF_ADMIN_PASSWORD' );
+if ( '' === $admin_user || '' === $admin_pass ) {
+	fwrite( STDERR, "SEEF_ADMIN_USER and SEEF_ADMIN_PASSWORD are required.\n" );
+	exit( 1 );
+}
+
 $base       = 'http://localhost/WordPress/my_first_store_wordpress';
 $cookieFile = tempnam( sys_get_temp_dir(), 'seef-admin-' );
 $failures   = 0;
@@ -29,7 +41,7 @@ $report = static function ( bool $ok, string $label ) use ( &$failures ): void {
 $request( $base . '/wp-login.php' );
 list( $code, $body, $url ) = $request(
 	$base . '/wp-login.php',
-	array( 'log' => 'seef_admin', 'pwd' => 'SeefAdmin2026!', 'rememberme' => 'forever', 'wp-submit' => 'Se connecter', 'redirect_to' => $base . '/wp-admin/', 'testcookie' => '1' )
+	array( 'log' => $admin_user, 'pwd' => $admin_pass, 'rememberme' => 'forever', 'wp-submit' => 'Se connecter', 'redirect_to' => $base . '/wp-admin/', 'testcookie' => '1' )
 );
 $report( 200 === $code && str_contains( $url, '/wp-admin/' ) && str_contains( $body, 'wp-admin-bar' ), 'Demo administrator authenticates through wp-login.php' );
 

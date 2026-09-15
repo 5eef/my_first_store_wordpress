@@ -9,12 +9,14 @@
 - droits `manage_woocommerce` pour les messages et abonnés ;
 - contenu contact enregistré en `private` ;
 - honeypot et limite de quatre contacts par dix minutes ;
+- honeypot, déduplication et limite légère sur la newsletter ;
+- seeding impossible en production et absent du cycle d’activation normal ;
 - six échecs de connexion maximum par couple IP/utilisateur pendant quinze minutes ;
 - IP pseudonymisée avec HMAC avant stockage en transient ;
 - en-têtes `nosniff`, `SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy` ;
 - erreurs journalisées localement mais non affichées ;
 - éditeur de fichiers WordPress désactivé ;
-- aucun secret de paiement et aucun mot de passe en clair en base.
+- aucun secret de paiement ni mot de passe administrateur versionné ; les mots de passe restent hachés par WordPress en base.
 
 ## Périmètre
 

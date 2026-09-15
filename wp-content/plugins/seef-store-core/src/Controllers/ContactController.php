@@ -42,8 +42,9 @@ final class ContactController implements Service {
 	}
 
 	public function submit(): void {
-		$request = wp_unslash( $_POST );
-		$nonce   = sanitize_text_field( (string) ( $request['seef_contact_nonce'] ?? '' ) );
+		$request   = wp_unslash( $_POST );
+		$nonce_raw = $request['seef_contact_nonce'] ?? '';
+		$nonce     = is_scalar( $nonce_raw ) ? sanitize_text_field( (string) $nonce_raw ) : '';
 
 		if ( ! wp_verify_nonce( $nonce, 'seef_contact_submit' ) ) {
 			$this->redirect( 'security' );

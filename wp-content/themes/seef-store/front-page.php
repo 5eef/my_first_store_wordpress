@@ -1,6 +1,6 @@
 <?php
 get_header();
-$shop_url = wc_get_page_permalink( 'shop' );
+$shop_url = seef_store_wc_url( 'shop' );
 ?>
 <main id="main" class="site-main">
 	<section class="seef-hero">
@@ -42,7 +42,7 @@ $shop_url = wc_get_page_permalink( 'shop' );
 
 	<section class="seef-editorial" data-reveal><div class="seef-shell seef-editorial-grid">
 		<div class="seef-editorial-art"><span>SEEF / 01</span><div class="seef-editorial-disc"></div></div>
-		<div class="seef-editorial-copy"><p class="seef-eyebrow"><?php esc_html_e( 'L’idée SEEF', 'seef-store' ); ?></p><h2><?php esc_html_e( 'La technologie disparaît quand elle est bien pensée.', 'seef-store' ); ?></h2><p><?php esc_html_e( 'Nous imaginons une sélection où la fonction reste évidente, les matériaux agréables et le design suffisamment sobre pour durer.', 'seef-store' ); ?></p><a class="seef-button seef-button--light" href="<?php echo esc_url( get_permalink( (int) get_option( 'seef_about_page_id' ) ) ); ?>"><?php esc_html_e( 'Découvrir notre approche', 'seef-store' ); ?></a></div>
+		<div class="seef-editorial-copy"><p class="seef-eyebrow"><?php esc_html_e( 'L’idée SEEF', 'seef-store' ); ?></p><h2><?php esc_html_e( 'La technologie disparaît quand elle est bien pensée.', 'seef-store' ); ?></h2><p><?php esc_html_e( 'Nous imaginons une sélection où la fonction reste évidente, les matériaux agréables et le design suffisamment sobre pour durer.', 'seef-store' ); ?></p><a class="seef-button seef-button--light" href="<?php echo esc_url( seef_store_content_page_url( 'seef_about_page_id', '/a-propos/' ) ); ?>"><?php esc_html_e( 'Découvrir notre approche', 'seef-store' ); ?></a></div>
 	</div></section>
 
 	<section class="seef-section seef-products-section" data-reveal><div class="seef-shell"><div class="seef-section-heading"><div><p class="seef-eyebrow"><?php esc_html_e( 'Sélection', 'seef-store' ); ?></p><h2><?php esc_html_e( 'Les essentiels SEEF', 'seef-store' ); ?></h2></div></div>
@@ -61,6 +61,6 @@ $shop_url = wc_get_page_permalink( 'shop' );
 		<blockquote><p>“<?php esc_html_e( 'Le mode sombre et la version mobile donnent vraiment envie de parcourir le catalogue.', 'seef-store' ); ?>”</p><footer>Lina B. · <?php esc_html_e( 'profil fictif', 'seef-store' ); ?></footer></blockquote>
 	</div></div></section>
 
-	<section class="seef-newsletter-band" data-reveal><div class="seef-shell seef-newsletter-inner"><div><p class="seef-eyebrow"><?php esc_html_e( 'Newsletter', 'seef-store' ); ?></p><h2><?php esc_html_e( 'Une dose d’inspiration, rarement mais bien.', 'seef-store' ); ?></h2></div><?php echo do_shortcode( '[seef_newsletter_form]' ); ?></div></section>
+	<section class="seef-newsletter-band" data-reveal><div class="seef-shell seef-newsletter-inner"><div><p class="seef-eyebrow"><?php esc_html_e( 'Newsletter', 'seef-store' ); ?></p><h2><?php esc_html_e( 'Une dose d’inspiration, rarement mais bien.', 'seef-store' ); ?></h2></div><?php echo shortcode_exists( 'seef_newsletter_form' ) ? do_shortcode( '[seef_newsletter_form]' ) : ''; ?></div></section>
 </main>
 <?php get_footer(); ?>

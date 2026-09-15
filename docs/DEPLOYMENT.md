@@ -9,7 +9,7 @@ Pour une démo portfolio sans transactions réelles, un hébergeur PHP/MySQL gra
 ## Avant l’envoi des fichiers
 
 1. Sauvegarder le dossier local et exporter la base avec phpMyAdmin.
-2. Créer un nouvel administrateur avec un mot de passe unique et supprimer ou désactiver les comptes locaux publiés dans `docs/DEMO.md`.
+2. Créer un nouvel administrateur avec un mot de passe unique et supprimer ou désactiver tous les comptes de démonstration locaux.
 3. Conserver uniquement les paiements fictifs. Ne jamais ajouter de clé Stripe, PayPal ou bancaire à cette démo.
 4. Dans `wp-config.php`, utiliser les identifiants MySQL fournis par l’hébergeur et appliquer :
 
@@ -18,11 +18,14 @@ define( 'WP_ENVIRONMENT_TYPE', 'production' );
 define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_LOG', false );
 define( 'WP_DEBUG_DISPLAY', false );
-define( 'SCRIPT_DEBUG', false );
 define( 'DISALLOW_FILE_EDIT', true );
 ```
 
 5. Générer de nouvelles clés secrètes WordPress ; ne pas réutiliser les salts du poste local.
+
+## Archive de release
+
+Créer l’archive depuis un commit propre avec `git archive --format=zip --output=seef-store-release.zip HEAD`. Les attributs `export-ignore` excluent les fichiers Git/éditeur, les backups, les tests, le log debug, les fichiers d’environnement, `wp-config.php` et le `.htaccess` local. Inspecter la liste de l’archive avant envoi et injecter les secrets uniquement sur l’hébergeur.
 
 ## Migration
 
@@ -30,7 +33,7 @@ define( 'DISALLOW_FILE_EDIT', true );
 2. Importer l’export SQL dans phpMyAdmin.
 3. Envoyer les fichiers WordPress dans le dossier web (`htdocs` ou équivalent) via FTP.
 4. Remplacer `wp-config.php` par la configuration de production.
-5. Si le site est à la racine du domaine, utiliser le contenu de `.htaccess-production.example` comme `.htaccess`.
+5. `.htaccess-local.example` documente XAMPP. Si le site est à la racine du domaine, utiliser uniquement le contenu de `.htaccess-production.example` comme `.htaccess` ; le `.htaccess` local est exclu des releases.
 6. Mettre à jour `home` et `siteurl` dans la table `wp_options` avec l’URL HTTPS publique.
 7. Se connecter à l’administration, ouvrir **Réglages → Permaliens** puis enregistrer sans modifier la structure.
 8. Vérifier les URLs encore liées à `localhost`. Pour les données sérialisées, utiliser un outil de recherche-remplacement compatible WordPress plutôt qu’un remplacement SQL brut.

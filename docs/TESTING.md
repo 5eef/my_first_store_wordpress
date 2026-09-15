@@ -2,9 +2,11 @@
 
 ## Suite d’intégration
 
-`C:\xampp\php\php.exe tests\run-integration.php`
+`$env:SEEF_DEMO_MODE='true'; C:\xampp\php\php.exe tests\run-integration.php`
 
-Elle charge WordPress et WooCommerce puis contrôle installation, activation, pages, catalogue, prix, promotions, stock, images/alt, rôles, mot de passe hashé, validation contact, nonce, confidentialité, paiements, livraison, panier, quantités, totaux, commande HPOS, réduction/restauration de stock, anglais, arabe et RTL.
+Elle charge WordPress et WooCommerce puis contrôle notamment l’activation sans seeding, le flag de démo, les assets, les prix inversés, la newsletter, le catalogue, les stocks, les rôles, le contact, les paiements, le panier, les commandes, les langues et le RTL.
+
+`C:\xampp\php\php.exe tests\theme-helpers.php` vérifie les URLs et le compteur panier lorsque WooCommerce n’est pas chargé.
 
 Les ressources créées pour les tests contact/commande sont supprimées à la fin ; le stock initial est restauré.
 
@@ -16,7 +18,7 @@ Vérifie les réponses 200 de l’accueil, boutique, produit, À propos, Contact
 
 `C:\xampp\php\php.exe tests\contact-http.php` effectue un aller-retour HTTP anonyme complet : extraction du nonce, soumission, redirection de succès, rejet d’un nonce invalide et contrôle de persistance privée en base.
 
-`C:\xampp\php\php.exe tests\admin-http.php` authentifie le compte administrateur local via `wp-login.php`, puis vérifie l’accès aux écrans produits, commandes HPOS, clients et messages.
+`tests\admin-http.php` exige `SEEF_ADMIN_USER` et `SEEF_ADMIN_PASSWORD`, puis authentifie ce compte local via `wp-login.php` et vérifie l’accès aux écrans produits, commandes HPOS, clients et messages.
 
 ## Validation statique
 

@@ -1,5 +1,5 @@
 <?php
-$shop = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/' );
+$shop = seef_store_wc_url( 'shop' );
 $seef_search_input_id = wp_unique_id( 'seef-search-' );
 ?>
 <form role="search" method="get" class="seef-search-form" action="<?php echo esc_url( $shop ); ?>">

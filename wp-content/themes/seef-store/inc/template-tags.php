@@ -2,9 +2,49 @@
 
 declare(strict_types=1);
 
+if ( ! function_exists( 'seef_store_wc_url' ) ) {
+	function seef_store_wc_url( string $page ): string {
+		$fallbacks = array(
+			'shop'      => '/boutique/',
+			'cart'      => '/panier/',
+			'checkout'  => '/commande/',
+			'myaccount' => '/mon-compte/',
+		);
+		$fallback = home_url( $fallbacks[ $page ] ?? '/' );
+
+		if ( ! function_exists( 'wc_get_page_permalink' ) ) {
+			return $fallback;
+		}
+
+		$url = wc_get_page_permalink( $page );
+		return is_string( $url ) && '' !== $url ? $url : $fallback;
+	}
+}
+
+if ( ! function_exists( 'seef_store_content_page_url' ) ) {
+	function seef_store_content_page_url( string $option, string $fallback_path ): string {
+		$page_id = (int) get_option( $option );
+		$url     = $page_id > 0 ? get_permalink( $page_id ) : false;
+
+		return is_string( $url ) && '' !== $url ? $url : home_url( $fallback_path );
+	}
+}
+
+if ( ! function_exists( 'seef_store_cart_count' ) ) {
+	function seef_store_cart_count(): int {
+		$woocommerce = function_exists( 'WC' ) ? WC() : null;
+		return is_object( $woocommerce ) && isset( $woocommerce->cart ) && $woocommerce->cart
+			? (int) $woocommerce->cart->get_cart_contents_count()
+			: 0;
+	}
+}
+
 if ( ! function_exists( 'seef_store_product_grid' ) ) {
 	/** @param array<string,mixed> $args */
 	function seef_store_product_grid( array $args ): void {
+		if ( ! function_exists( 'wc_get_template_part' ) || ! post_type_exists( 'product' ) ) {
+			return;
+		}
 		$query = new WP_Query( array_merge( array( 'post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => 4 ), $args ) );
 		if ( $query->have_posts() ) {
 			echo '<ul class="products columns-4 seef-product-grid">';
@@ -65,9 +105,9 @@ if ( ! function_exists( 'seef_store_menu_fallback' ) ) {
 	function seef_store_menu_fallback(): void {
 		$links = array(
 			home_url( '/' ) => __( 'Accueil', 'seef-store' ),
-			function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'shop' ) : home_url( '/boutique/' ) => __( 'Boutique', 'seef-store' ),
-			get_permalink( (int) get_option( 'seef_about_page_id' ) ) => __( 'À propos', 'seef-store' ),
-			get_permalink( (int) get_option( 'seef_contact_page_id' ) ) => __( 'Contact', 'seef-store' ),
+			seef_store_wc_url( 'shop' ) => __( 'Boutique', 'seef-store' ),
+			seef_store_content_page_url( 'seef_about_page_id', '/a-propos/' ) => __( 'À propos', 'seef-store' ),
+			seef_store_content_page_url( 'seef_contact_page_id', '/contact/' ) => __( 'Contact', 'seef-store' ),
 		);
 		echo '<ul class="seef-menu">';
 		foreach ( $links as $url => $label ) {

@@ -24,7 +24,7 @@ WordPress n’a pas été converti en MVC. Le découpage MVC-like concerne uniqu
 
 ## Plugin métier
 
-Le point d’entrée installe un autoloader PSR-4 léger pour l’espace de noms `SeefStore`. `Plugin` compose les services : contact, newsletter, filtres produits, locale, traductions, en-têtes et protection de connexion. `DemoSeeder` utilise les API WordPress/WooCommerce et reste idempotent.
+Le point d’entrée installe un autoloader PSR-4 léger pour l’espace de noms `SeefStore`. `Plugin` compose les services : contact, newsletter, filtres produits, locale, traductions, en-têtes et protection de connexion. `DemoSeeder` utilise les API WordPress/WooCommerce, reste idempotent et n’est jamais lancé à l’activation. Il exige un lancement CLI explicite, `SEEF_DEMO_MODE=true`, un environnement `local`/`development` et un nouveau processus WordPress où WooCommerce est entièrement initialisé.
 
 ## Limites de responsabilité
 

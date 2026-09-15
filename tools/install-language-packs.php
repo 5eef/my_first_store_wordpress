@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+if ( 'cli' !== PHP_SAPI ) {
+	http_response_code( 403 );
+	exit( 'CLI only.' );
+}
+
 $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] ?? 'localhost';
 require dirname( __DIR__ ) . '/wp-load.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';

@@ -44,17 +44,8 @@ final class Plugin {
 			$service->register();
 		}
 
-		add_action( 'woocommerce_init', array( $this, 'maybe_seed' ), 30 );
-
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			add_action( 'admin_notices', array( $this, 'woocommerce_notice' ) );
-		}
-	}
-
-	public function maybe_seed(): void {
-		if ( 'yes' === get_option( 'seef_store_seed_pending' ) ) {
-			Setup\DemoSeeder::run();
-			delete_option( 'seef_store_seed_pending' );
 		}
 	}
 

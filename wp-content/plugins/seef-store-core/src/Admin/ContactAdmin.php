@@ -58,13 +58,15 @@ final class ContactAdmin implements Service {
 	}
 
 	public function save( int $post_id ): void {
-		if ( ! isset( $_POST['seef_contact_admin_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['seef_contact_admin_nonce'] ) ), 'seef_contact_admin' ) ) {
+		$request = wp_unslash( $_POST );
+		$nonce   = $request['seef_contact_admin_nonce'] ?? '';
+		if ( ! is_scalar( $nonce ) || ! wp_verify_nonce( sanitize_text_field( (string) $nonce ), 'seef_contact_admin' ) ) {
 			return;
 		}
 		if ( wp_is_post_revision( $post_id ) || ! current_user_can( 'manage_woocommerce' ) ) {
 			return;
 		}
-		$status = sanitize_key( (string) ( $_POST['seef_status'] ?? '' ) );
+		$status = is_scalar( $request['seef_status'] ?? '' ) ? sanitize_key( (string) $request['seef_status'] ) : '';
 		if ( in_array( $status, array( 'new', 'read', 'replied', 'archived' ), true ) ) {
 			update_post_meta( $post_id, '_seef_status', $status );
 		}
