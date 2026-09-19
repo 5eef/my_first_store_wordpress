@@ -70,12 +70,19 @@ Si `SEEF_ADMIN_PASSWORD` est omis, le bootstrap génère un mot de passe fort et
 
 Les paramètres de connexion peuvent être remplacés avec `SEEF_DB_NAME`, `SEEF_DB_USER`, `SEEF_DB_PASSWORD` et `SEEF_DB_HOST`. Les identifiants de test sont documentés séparément dans [docs/DEMO.md](docs/DEMO.md) et ne doivent jamais être réutilisés en ligne.
 
-## Qualité et validation
+## CI / Quality
+
+Le workflow GitHub Actions `.github/workflows/ci.yml` contrôle chaque pull request et chaque push sur `main`. Il limite le PHP lint au thème, au plugin, aux tests et aux outils propriétaires, exécute les tests autonomes, vérifie le JavaScript custom et analyse l’historique Git avec Gitleaks. Un job séparé initialise WordPress/WooCommerce sur une base MariaDB jetable, active le mode démo uniquement en environnement de développement, vérifie HPOS puis lance les tests d’intégration et les smoke tests HTTP portables.
+
+Validation locale :
 
 ```powershell
 C:\xampp\php\php.exe tests\run-integration.php
 C:\xampp\php\php.exe tests\theme-helpers.php
+C:\xampp\php\php.exe tests\unit.php
+C:\xampp\php\php.exe tests\demo-mode-safety.php
 powershell -ExecutionPolicy Bypass -File tests\http-smoke.ps1
+C:\xampp\php\php.exe tests\http-smoke.php
 C:\xampp\php\php.exe tests\contact-http.php
 C:\xampp\php\php.exe tests\admin-http.php
 ```

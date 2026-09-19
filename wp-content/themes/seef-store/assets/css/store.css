@@ -673,3 +673,11 @@ body{
 	.seef-header-actions button,.seef-icon-link{width:32px;height:32px}
 	.seef-language a{min-width:24px}
 }
+
+/* Keep all five header actions inside the 320 px layout, including cached legacy cascades. */
+@media(max-width:380px){
+	.site-header .seef-header-inner{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+	.site-header .seef-header-inner>.seef-brand{width:72px;height:50px}
+	.site-header .seef-header-actions{gap:2px;min-width:0}
+	.site-header .seef-header-actions button,.site-header .seef-icon-link{width:32px;height:32px}
+}

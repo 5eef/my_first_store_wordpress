@@ -167,7 +167,8 @@ final class Theme {
 
 		$facet_keys = array( 'seef_category', 'min_price', 'max_price', 'in_stock' );
 		foreach ( $facet_keys as $key ) {
-			if ( isset( $_GET[ $key ] ) && '' !== (string) wp_unslash( $_GET[ $key ] ) ) {
+			$value = $_GET[ $key ] ?? '';
+			if ( is_scalar( $value ) && '' !== (string) wp_unslash( (string) $value ) ) {
 				$robots['noindex'] = true;
 				$robots['follow']  = true;
 				unset( $robots['index'], $robots['nofollow'] );

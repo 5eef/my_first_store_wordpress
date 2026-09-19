@@ -20,6 +20,8 @@ use SeefStore\Frontend\ProductFilters;
 use SeefStore\Setup\Activator;
 use SeefStore\Setup\DemoSeeder;
 use SeefStore\Validators\ContactValidator;
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 $passed = 0;
 $failed = 0;
@@ -41,6 +43,9 @@ try {
 	$check( is_plugin_active( 'woocommerce/woocommerce.php' ), 'WooCommerce is active' );
 	$check( is_plugin_active( 'seef-store-core/seef-store-core.php' ), 'SEEF Store Core is active' );
 	$check( defined( 'WC_VERSION' ), 'WooCommerce runtime loaded', defined( 'WC_VERSION' ) ? WC_VERSION : '' );
+	$check( OrderUtil::custom_orders_table_usage_is_enabled(), 'WooCommerce HPOS is enabled' );
+	$compatible_features = FeaturesUtil::get_compatible_features_for_plugin( 'seef-store-core/seef-store-core.php' );
+	$check( in_array( 'custom_order_tables', $compatible_features['compatible'] ?? array(), true ), 'SEEF Store Core declares HPOS compatibility' );
 
 	$shipping_state = static function (): array {
 		$state = array();

@@ -8,8 +8,8 @@ final class Translator implements Service {
 	/** @var array<string,array<string,string>> */
 	private array $catalog = array(
 		'en_US' => array(
-			'Boutique' => 'Shop', 'À propos' => 'About', 'Contact' => 'Contact', 'Accueil' => 'Home',
-			'Rechercher des produits…' => 'Search products…', 'Rechercher' => 'Search', 'Mon compte' => 'My account', 'Panier' => 'Cart',
+			'Boutique' => 'Shop', 'À propos' => 'About', 'Contact' => 'Contact', 'Accueil' => 'Home', 'Catégories' => 'Categories', 'Aucune catégorie disponible.' => 'No category available.', 'Nouveau' => 'New', 'Sélection 2026' => '2026 selection', 'NEW' => 'NEW',
+			'Rechercher des produits…' => 'Search products…', 'Rechercher un produit, une catégorie…' => 'Search for a product or category…', 'Rechercher' => 'Search', 'Mon compte' => 'My account', 'Panier' => 'Cart',
 			'Découvrir la boutique' => 'Explore the shop', 'Voir les nouveautés' => 'See what’s new', 'Nos catégories' => 'Our categories',
 			'Nouveautés choisies pour vous' => 'New arrivals picked for you', 'Les essentiels SEEF' => 'SEEF essentials',
 			'Pourquoi SEEF STORE ?' => 'Why SEEF STORE?', 'Livraison suivie' => 'Tracked delivery', 'Paiement de démonstration sécurisé' => 'Secure demo payment',
@@ -21,6 +21,7 @@ final class Translator implements Service {
 			'Filtrer la boutique' => 'Filter shop', 'Toutes les catégories' => 'All categories', 'Prix minimum' => 'Minimum price', 'Prix maximum' => 'Maximum price',
 			'En stock uniquement' => 'In stock only', 'Appliquer' => 'Apply', 'Réinitialiser' => 'Reset', 'Produit' => 'Product',
 			'Ajouter au panier' => 'Add to cart', 'Newsletter' => 'Newsletter', 'Recevez nos nouveautés et conseils, sans bruit.' => 'Get new arrivals and useful tips, without noise.',
+			'Inscription enregistrée — démonstration locale.' => 'Subscription saved — local demo.', 'Saisissez une adresse e-mail valide.' => 'Enter a valid email address.', 'Trop de tentatives. Réessayez dans quelques minutes.' => 'Too many attempts. Try again in a few minutes.', 'L’inscription n’a pas pu être enregistrée.' => 'The subscription could not be saved.', 'S’inscrire' => 'Subscribe',
 			'Contenu et témoignages de démonstration.' => 'Demo content and testimonials.', 'Tous droits réservés.' => 'All rights reserved.',
 			'Explorer' => 'Explore', 'Votre espace' => 'Your space', 'Commande' => 'Checkout', 'Projet' => 'Project', 'Projet portfolio local — aucune vente réelle.' => 'Local portfolio project — no real sales.',
 			'Aller au contenu' => 'Skip to content', 'Livraison offerte dès 1 000 MAD' => 'Free delivery over MAD 1,000', 'Boutique locale de démonstration — aucun paiement réel' => 'Local demo store — no real payment',
@@ -57,8 +58,8 @@ final class Translator implements Service {
 			'Découvrez la sélection SEEF STORE : technologie, accessoires, espace de travail et objets lifestyle pensés pour le quotidien.' => 'Discover the SEEF STORE selection: technology, accessories, workspace and lifestyle objects designed for everyday life.', 'Découvrez notre sélection %s, choisie pour son design et sa simplicité d’usage.' => 'Discover our %s selection, chosen for its design and ease of use.',
 		),
 		'ar' => array(
-			'Boutique' => 'المتجر', 'À propos' => 'من نحن', 'Contact' => 'اتصل بنا', 'Accueil' => 'الرئيسية',
-			'Rechercher des produits…' => 'ابحث عن المنتجات…', 'Rechercher' => 'بحث', 'Mon compte' => 'حسابي', 'Panier' => 'السلة',
+			'Boutique' => 'المتجر', 'À propos' => 'من نحن', 'Contact' => 'اتصل بنا', 'Accueil' => 'الرئيسية', 'Catégories' => 'الفئات', 'Aucune catégorie disponible.' => 'لا توجد فئات متاحة.', 'Nouveau' => 'جديد', 'Sélection 2026' => 'مختارات 2026', 'NEW' => 'جديد',
+			'Rechercher des produits…' => 'ابحث عن المنتجات…', 'Rechercher un produit, une catégorie…' => 'ابحث عن منتج أو فئة…', 'Rechercher' => 'بحث', 'Mon compte' => 'حسابي', 'Panier' => 'السلة',
 			'Découvrir la boutique' => 'اكتشف المتجر', 'Voir les nouveautés' => 'شاهد الجديد', 'Nos catégories' => 'فئاتنا',
 			'Nouveautés choisies pour vous' => 'وصل حديثاً من أجلك', 'Les essentiels SEEF' => 'أساسيات SEEF',
 			'Pourquoi SEEF STORE ?' => 'لماذا SEEF STORE؟', 'Livraison suivie' => 'توصيل مع التتبع', 'Paiement de démonstration sécurisé' => 'دفع تجريبي آمن',
@@ -70,6 +71,7 @@ final class Translator implements Service {
 			'Filtrer la boutique' => 'تصفية المتجر', 'Toutes les catégories' => 'كل الفئات', 'Prix minimum' => 'السعر الأدنى', 'Prix maximum' => 'السعر الأقصى',
 			'En stock uniquement' => 'المتوفر فقط', 'Appliquer' => 'تطبيق', 'Réinitialiser' => 'إعادة ضبط', 'Produit' => 'منتج',
 			'Ajouter au panier' => 'أضف إلى السلة', 'Newsletter' => 'النشرة البريدية', 'Recevez nos nouveautés et conseils, sans bruit.' => 'استقبل جديدنا ونصائحنا المفيدة.',
+			'Inscription enregistrée — démonstration locale.' => 'تم حفظ الاشتراك — تجربة محلية.', 'Saisissez une adresse e-mail valide.' => 'أدخل عنوان بريد إلكتروني صالحاً.', 'Trop de tentatives. Réessayez dans quelques minutes.' => 'محاولات كثيرة. أعد المحاولة بعد بضع دقائق.', 'L’inscription n’a pas pu être enregistrée.' => 'تعذر حفظ الاشتراك.', 'S’inscrire' => 'اشترك',
 			'Contenu et témoignages de démonstration.' => 'محتوى وشهادات تجريبية.', 'Tous droits réservés.' => 'جميع الحقوق محفوظة.',
 			'Explorer' => 'استكشف', 'Votre espace' => 'مساحتك', 'Commande' => 'إتمام الطلب', 'Projet' => 'المشروع', 'Projet portfolio local — aucune vente réelle.' => 'مشروع أعمال محلي — لا توجد مبيعات حقيقية.',
 			'Aller au contenu' => 'انتقل إلى المحتوى', 'Livraison offerte dès 1 000 MAD' => 'توصيل مجاني ابتداءً من 1000 درهم', 'Boutique locale de démonstration — aucun paiement réel' => 'متجر تجريبي محلي — لا يوجد دفع حقيقي', 'Ouvrir le menu' => 'فتح القائمة', 'Fermer le menu' => 'إغلاق القائمة', 'Navigation principale' => 'التنقل الرئيسي', 'Navigation de pied de page' => 'تنقل أسفل الصفحة', 'Langue' => 'اللغة', 'Changer le thème' => 'تغيير المظهر', 'Activer le thème clair' => 'تفعيل الوضع الفاتح', 'Activer le thème sombre' => 'تفعيل الوضع الداكن', 'Articles dans le panier' => 'عناصر السلة', 'En stock' => 'متوفر', 'Rupture de stock' => 'غير متوفر',
@@ -106,8 +108,7 @@ final class Translator implements Service {
 		if ( ! in_array( $domain, array( 'seef-store', 'seef-store-core' ), true ) ) {
 			return $translation;
 		}
-		$language = isset( $_GET['seef_lang'] ) ? wp_unslash( $_GET['seef_lang'] ) : ( $_COOKIE['seef_lang'] ?? '' );
-		$locale   = array( 'fr' => 'fr_FR', 'en' => 'en_US', 'ar' => 'ar' )[ sanitize_key( (string) $language ) ] ?? get_locale();
+		$locale = $this->requested_locale();
 		return $this->catalog[ $locale ][ $text ] ?? $translation;
 	}
 
@@ -120,8 +121,14 @@ final class Translator implements Service {
 	}
 
 	private function localized_value( string $text ): string {
-		$language = isset( $_GET['seef_lang'] ) ? wp_unslash( $_GET['seef_lang'] ) : ( $_COOKIE['seef_lang'] ?? '' );
-		$locale   = array( 'fr' => 'fr_FR', 'en' => 'en_US', 'ar' => 'ar' )[ sanitize_key( (string) $language ) ] ?? get_locale();
+		$locale = $this->requested_locale();
 		return $this->catalog[ $locale ][ $text ] ?? $text;
+	}
+
+	private function requested_locale(): string {
+		$language = isset( $_GET['seef_lang'] ) ? $_GET['seef_lang'] : ( $_COOKIE['seef_lang'] ?? '' );
+		$key      = is_scalar( $language ) ? sanitize_key( wp_unslash( (string) $language ) ) : '';
+
+		return array( 'fr' => 'fr_FR', 'en' => 'en_US', 'ar' => 'ar' )[ $key ] ?? get_locale();
 	}
 }

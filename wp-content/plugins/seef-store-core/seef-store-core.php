@@ -3,7 +3,7 @@
  * Plugin Name: SEEF Store Core
  * Update URI: https://github.com/5eef/seef-store-core
  * Description: Business features, demo data, contact management and security for SEEF STORE.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Youssef BOUGHIOUL
  * Text Domain: seef-store-core
  * Requires at least: 6.6
@@ -17,9 +17,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SEEF_STORE_CORE_VERSION', '1.1.1' );
+define( 'SEEF_STORE_CORE_VERSION', '1.1.2' );
 define( 'SEEF_STORE_CORE_FILE', __FILE__ );
 define( 'SEEF_STORE_CORE_PATH', plugin_dir_path( __FILE__ ) );
+
+add_action(
+	'before_woocommerce_init',
+	static function (): void {
+		if ( class_exists( Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+			Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
+	}
+);
 
 spl_autoload_register(
 	static function ( string $class ): void {

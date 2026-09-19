@@ -13,7 +13,8 @@ final class ContactForm implements Service {
 	}
 
 	public function render(): string {
-		$status = sanitize_key( (string) ( $_GET['contact_status'] ?? '' ) );
+		$status_raw = $_GET['contact_status'] ?? '';
+		$status     = is_scalar( $status_raw ) ? sanitize_key( wp_unslash( (string) $status_raw ) ) : '';
 		$notices = array(
 			'success'      => array( 'success', __( 'Merci ! Votre message a bien été enregistré.', 'seef-store-core' ) ),
 			'invalid'      => array( 'error', __( 'Certains champs doivent être corrigés.', 'seef-store-core' ) ),

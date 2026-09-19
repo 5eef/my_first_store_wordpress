@@ -10,11 +10,12 @@ final class ContactValidator {
 	 * @return array{data:array{name:string,email:string,subject:string,message:string},errors:list<string>}
 	 */
 	public function validate( array $input ): array {
+		$scalar = static fn( mixed $value ): string => is_scalar( $value ) ? (string) $value : '';
 		$data = array(
-			'name'    => sanitize_text_field( (string) ( $input['name'] ?? '' ) ),
-			'email'   => sanitize_email( (string) ( $input['email'] ?? '' ) ),
-			'subject' => sanitize_text_field( (string) ( $input['subject'] ?? '' ) ),
-			'message' => sanitize_textarea_field( (string) ( $input['message'] ?? '' ) ),
+			'name'    => sanitize_text_field( $scalar( $input['name'] ?? '' ) ),
+			'email'   => sanitize_email( $scalar( $input['email'] ?? '' ) ),
+			'subject' => sanitize_text_field( $scalar( $input['subject'] ?? '' ) ),
+			'message' => sanitize_textarea_field( $scalar( $input['message'] ?? '' ) ),
 		);
 		$errors = array();
 

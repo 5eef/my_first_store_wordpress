@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace SeefStore\Setup;
 
+use Automattic\WooCommerce\Internal\Features\FeaturesController;
 use SeefStore\Models\ContactMessage;
 
 final class DemoSeeder {
-	private const SEED_VERSION = '1.0.1';
+	private const SEED_VERSION = '1.0.2';
 
 	/** @var array<string,int> */
 	private static array $categories = array();
@@ -61,6 +62,9 @@ final class DemoSeeder {
 	}
 
 	private static function configure_store(): void {
+		if ( function_exists( 'wc_get_container' ) && class_exists( FeaturesController::class ) ) {
+			wc_get_container()->get( FeaturesController::class )->change_feature_enable( 'custom_order_tables', true );
+		}
 		update_option( 'blogname', 'SEEF STORE' );
 		update_option( 'blogdescription', 'Objets tech et lifestyle pensés pour le quotidien.' );
 		update_option( 'blog_public', 'production' === wp_get_environment_type() ? '1' : '0' );

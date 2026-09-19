@@ -1,8 +1,8 @@
 # Base de données
 
-## Connexion locale détectée
+## Connexion locale
 
-`my_first_store_wordpress` sur `127.0.0.1:3307`, MariaDB 10.4.32, charset `utf8mb4`. La base était vide avant la mission. `wp-config.php` accepte des variables d’environnement afin d’éviter de figer des secrets.
+La connexion n’est pas versionnée. Le fichier `wp-config.php`, ignoré par Git, lit `SEEF_DB_NAME`, `SEEF_DB_USER`, `SEEF_DB_PASSWORD` et `SEEF_DB_HOST` afin d’éviter de figer des secrets. La CI utilise une base MariaDB jetable `seef_store_ci` avec des identifiants explicitement réservés aux tests.
 
 ## Schéma
 

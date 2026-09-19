@@ -8,7 +8,7 @@ if ( 'cli' !== PHP_SAPI ) {
 	exit( 'CLI only.' );
 }
 
-$base       = 'http://localhost/WordPress/my_first_store_wordpress';
+$base       = rtrim( (string) ( getenv( 'SEEF_BASE_URL' ) ?: 'http://localhost/WordPress/my_first_store_wordpress' ), '/' );
 $cookieFile = tempnam( sys_get_temp_dir(), 'seef-contact-' );
 $failures   = 0;
 

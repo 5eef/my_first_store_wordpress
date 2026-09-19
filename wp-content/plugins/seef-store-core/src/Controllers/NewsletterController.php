@@ -33,6 +33,8 @@ final class NewsletterController implements Service {
 			echo '<p class="seef-newsletter-status" role="alert">' . esc_html__( 'Trop de tentatives. Réessayez dans quelques minutes.', 'seef-store-core' ) . '</p>';
 		} elseif ( 'security' === $status ) {
 			echo '<p class="seef-newsletter-status" role="alert">' . esc_html__( 'La vérification de sécurité a échoué. Rechargez la page.', 'seef-store-core' ) . '</p>';
+		} elseif ( 'error' === $status ) {
+			echo '<p class="seef-newsletter-status" role="alert">' . esc_html__( 'L’inscription n’a pas pu être enregistrée.', 'seef-store-core' ) . '</p>';
 		}
 		?>
 		<form class="seef-newsletter-form" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
@@ -61,13 +63,20 @@ final class NewsletterController implements Service {
 		} elseif ( is_email( $email ) && mb_strlen( $email ) <= 160 ) {
 			$existing = get_posts( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'title' => $email, 'numberposts' => 1, 'fields' => 'ids' ) );
 			if ( ! $existing ) {
-				wp_insert_post( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'post_title' => $email ) );
+				$post_id = wp_insert_post( array( 'post_type' => self::POST_TYPE, 'post_status' => 'private', 'post_title' => $email ), true );
+				if ( is_wp_error( $post_id ) ) {
+					$this->redirect( 'error' );
+				}
 			}
 			$this->increment_rate_limit();
 			$status = 'success';
 		}
+		$this->redirect( $status );
+	}
+
+	private function redirect( string $status ): never {
 		$target = wp_get_referer() ?: home_url( '/' );
-		wp_safe_redirect( add_query_arg( 'newsletter_status', $status, remove_query_arg( 'newsletter_status', $target ) ) );
+		wp_safe_redirect( add_query_arg( 'newsletter_status', sanitize_key( $status ), remove_query_arg( 'newsletter_status', $target ) ) );
 		exit;
 	}
 

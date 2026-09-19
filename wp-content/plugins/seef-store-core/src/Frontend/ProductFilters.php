@@ -38,7 +38,9 @@ final class ProductFilters implements Service {
 			}
 			$meta_query[] = $range;
 		}
-		if ( isset( $_GET['in_stock'] ) && '1' === sanitize_text_field( wp_unslash( $_GET['in_stock'] ) ) ) {
+		$stock_raw = $_GET['in_stock'] ?? '';
+		$in_stock = is_scalar( $stock_raw ) ? sanitize_text_field( wp_unslash( (string) $stock_raw ) ) : '';
+		if ( '1' === $in_stock ) {
 			$meta_query[] = array( 'key' => '_stock_status', 'value' => 'instock' );
 		}
 		$query->set( 'meta_query', $meta_query );

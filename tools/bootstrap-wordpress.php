@@ -51,7 +51,12 @@ if ( is_wp_error( $result ) ) {
 	exit( 1 );
 }
 
-$url = 'http://localhost/WordPress/my_first_store_wordpress';
+$url = esc_url_raw( (string) ( getenv( 'SEEF_SITE_URL' ) ?: 'http://localhost/WordPress/my_first_store_wordpress' ) );
+$url_parts = wp_parse_url( $url );
+if ( false === filter_var( $url, FILTER_VALIDATE_URL ) || ! is_array( $url_parts ) || ! in_array( $url_parts['scheme'] ?? '', array( 'http', 'https' ), true ) ) {
+	fwrite( STDERR, "SEEF_SITE_URL must be a valid HTTP(S) URL.\n" );
+	exit( 1 );
+}
 update_option( 'siteurl', $url );
 update_option( 'home', $url );
 update_option( 'blogdescription', 'Objets tech et lifestyle pensés pour le quotidien.' );

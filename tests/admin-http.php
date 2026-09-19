@@ -15,7 +15,7 @@ if ( '' === $admin_user || '' === $admin_pass ) {
 	exit( 1 );
 }
 
-$base       = 'http://localhost/WordPress/my_first_store_wordpress';
+$base       = rtrim( (string) ( getenv( 'SEEF_BASE_URL' ) ?: 'http://localhost/WordPress/my_first_store_wordpress' ), '/' );
 $cookieFile = tempnam( sys_get_temp_dir(), 'seef-admin-' );
 $failures   = 0;
 
@@ -39,10 +39,11 @@ $report = static function ( bool $ok, string $label ) use ( &$failures ): void {
 };
 
 $request( $base . '/wp-login.php' );
-list( $code, $body, $url ) = $request(
+$request(
 	$base . '/wp-login.php',
 	array( 'log' => $admin_user, 'pwd' => $admin_pass, 'rememberme' => 'forever', 'wp-submit' => 'Se connecter', 'redirect_to' => $base . '/wp-admin/', 'testcookie' => '1' )
 );
+list( $code, $body, $url ) = $request( $base . '/wp-admin/edit.php?post_type=product' );
 $report( 200 === $code && str_contains( $url, '/wp-admin/' ) && str_contains( $body, 'wp-admin-bar' ), 'Demo administrator authenticates through wp-login.php' );
 
 $screens = array(

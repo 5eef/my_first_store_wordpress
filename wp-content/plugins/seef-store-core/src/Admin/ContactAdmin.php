@@ -63,7 +63,7 @@ final class ContactAdmin implements Service {
 		if ( ! is_scalar( $nonce ) || ! wp_verify_nonce( sanitize_text_field( (string) $nonce ), 'seef_contact_admin' ) ) {
 			return;
 		}
-		if ( wp_is_post_revision( $post_id ) || ! current_user_can( 'manage_woocommerce' ) ) {
+		if ( wp_is_post_revision( $post_id ) || ! current_user_can( 'edit_post', $post_id ) ) {
 			return;
 		}
 		$status = is_scalar( $request['seef_status'] ?? '' ) ? sanitize_key( (string) $request['seef_status'] ) : '';

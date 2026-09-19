@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seef-store-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-quality:
+    name: Static quality and security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, mbstring, mysqli, openssl, xml, zip
+          coverage: none
+          tools: none
+
+      - name: Lint proprietary PHP
+        shell: bash
+        run: >-
+          find wp-content/themes/seef-store
+          wp-content/plugins/seef-store-core tests tools
+          -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Run standalone custom tests
+        run: |
+          php tests/theme-helpers.php
+          php tests/unit.php
+          php tests/demo-mode-safety.php
+
+      - name: Check custom JavaScript syntax
+        run: node --check wp-content/themes/seef-store/assets/js/store.js
+
+      - name: Scan Git history for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  wordpress-integration:
+    name: WordPress and WooCommerce integration
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: seef_store_ci
+          MARIADB_USER: seef_ci
+          MARIADB_PASSWORD: test-only-password
+          MARIADB_ROOT_PASSWORD: test-only-root-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      SEEF_DB_NAME: seef_store_ci
+      SEEF_DB_USER: seef_ci
+      SEEF_DB_PASSWORD: test-only-password
+      SEEF_DB_HOST: 127.0.0.1:3306
+      SEEF_ADMIN_USER: seef_ci_admin
+      SEEF_ADMIN_PASSWORD: test-only-admin-password
+      SEEF_DEMO_CUSTOMER_PASSWORD: test-only-customer-password
+      SEEF_DEMO_MODE: 'true'
+      SEEF_SITE_URL: http://127.0.0.1:8080
+      SEEF_BASE_URL: http://127.0.0.1:8080
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.2'
+          extensions: curl, fileinfo, mbstring, mysqli, openssl, xml, zip
+          coverage: none
+          tools: none
+
+      - name: Configure and seed disposable WordPress
+        run: |
+          cp .github/wp-config-ci.php wp-config.php
+          php tools/bootstrap-wordpress.php
+          php tools/configure-store.php
+
+      - name: Run WordPress integration tests
+        run: php tests/run-integration.php
+
+      - name: Run portable HTTP tests
+        shell: bash
+        run: |
+          php -S 127.0.0.1:8080 tests/router.php >/tmp/seef-store-php-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          curl --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 1 "$SEEF_BASE_URL/" >/dev/null
+          php tests/http-smoke.php
+          php tests/contact-http.php
+          php tests/admin-http.php

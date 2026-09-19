@@ -1,0 +1,12 @@
+title = "SEEF STORE secret scanning"
+
+[allowlist]
+description = "Exclude unmodified upstream distributions that contain known test-data false positives"
+paths = [
+  '''^wp-admin/''',
+  '''^wp-includes/''',
+  '''^wp-content/plugins/akismet/''',
+  '''^wp-content/plugins/woocommerce/''',
+  '''^wp-content/themes/twentytwenty[^/]*/''',
+  '''^wp-content/languages/''',
+]
