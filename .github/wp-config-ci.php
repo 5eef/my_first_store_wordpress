@@ -36,6 +36,8 @@ define( 'WP_DEBUG_LOG', false );
 define( 'WP_DEBUG_DISPLAY', false );
 define( 'DISALLOW_FILE_EDIT', true );
 define( 'WP_AUTO_UPDATE_CORE', false );
+// The single-process PHP test server cannot safely serve WordPress loopback cron requests.
+define( 'DISABLE_WP_CRON', true );
 
 $seef_ci_url = $seef_ci_env( 'SEEF_SITE_URL' );
 define( 'WP_HOME', $seef_ci_url );
