@@ -1,5 +1,7 @@
 # SEEF STORE — expérience e-commerce WordPress
 
+[![CI](https://github.com/5eef/my_first_store_wordpress/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/5eef/my_first_store_wordpress/actions/workflows/ci.yml)
+
 SEEF STORE est une boutique WooCommerce trilingue conçue comme projet portfolio full-stack. Le projet associe une identité visuelle originale, un thème WordPress sur mesure et un plugin métier pour proposer un parcours complet : catalogue, recherche, filtres, panier, commande, compte client, contact et administration.
 
 **Conception et développement : Youssef BOUGHIOUL** — [GitHub @5eef](https://github.com/5eef)
