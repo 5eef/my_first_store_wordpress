@@ -1,10 +1,10 @@
 # Déploiement de la démo
 
-## Hébergement gratuit conseillé
+## Déploiement actuel
 
-Cette boutique a besoin de PHP, MySQL/MariaDB, Apache et de la possibilité d’installer un thème et des plugins personnalisés. Un plan WordPress.com gratuit ne convient donc pas à ce dépôt : il ne permet pas d’envoyer ce thème et ce plugin personnalisés.
+La démo portfolio est actuellement publiée sur [https://seef-store.free.nf](https://seef-store.free.nf), en HTTPS, chez **InfinityFree**. Elle ne traite aucune transaction réelle et n’est pas destinée à une boutique commerciale.
 
-Pour une démo portfolio sans transactions réelles, un hébergeur PHP/MySQL gratuit comme **InfinityFree** peut convenir. Il faut accepter les limites d’un service gratuit : ressources partagées, disponibilité sans garantie, envoi d’e-mails limité et sauvegardes à gérer soi-même. Ce choix est adapté à une vitrine de démonstration, pas à une boutique commerciale.
+Le déploiement vers InfinityFree est **manuel**. GitHub Actions automatise uniquement les contrôles de qualité et de sécurité ; aucune automatisation GitHub vers InfinityFree n’est actuellement considérée comme fiable. L’hébergement gratuit implique des ressources partagées, une disponibilité sans garantie, un envoi d’e-mails limité et des sauvegardes à gérer soi-même.
 
 ## Avant l’envoi des fichiers
 
@@ -37,6 +37,19 @@ Créer l’archive depuis un commit propre avec `git archive --format=zip --outp
 6. Mettre à jour `home` et `siteurl` dans la table `wp_options` avec l’URL HTTPS publique.
 7. Se connecter à l’administration, ouvrir **Réglages → Permaliens** puis enregistrer sans modifier la structure.
 8. Vérifier les URLs encore liées à `localhost`. Pour les données sérialisées, utiliser un outil de recherche-remplacement compatible WordPress plutôt qu’un remplacement SQL brut.
+
+## Mise à jour de la démo existante
+
+Pour une petite correction du thème ou du plugin :
+
+1. Identifier uniquement les fichiers custom modifiés.
+2. Sauvegarder les fichiers actuellement publiés.
+3. Envoyer uniquement les fichiers modifiés.
+4. Ne pas remplacer inutilement WordPress core ou WooCommerce.
+5. Effectuer les smoke tests sur la démo publique.
+6. En cas de problème, restaurer la sauvegarde précédente.
+
+Ne consigner aucun mot de passe ni secret FTP dans le dépôt ou cette documentation.
 
 ## Activation SEO
 

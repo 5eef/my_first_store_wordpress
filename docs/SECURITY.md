@@ -16,11 +16,22 @@
 - en-têtes `nosniff`, `SAMEORIGIN`, `Referrer-Policy`, `Permissions-Policy` ;
 - erreurs journalisées localement mais non affichées ;
 - éditeur de fichiers WordPress désactivé ;
+- analyse de l’historique Git avec Gitleaks dans la CI ;
 - aucun secret de paiement ni mot de passe administrateur versionné ; les mots de passe restent hachés par WordPress en base.
 
 ## Périmètre
 
-Ce projet est local et en HTTP. Une production exigerait HTTPS, un compte MariaDB dédié avec mot de passe, rotation des salts, sauvegardes, politique CSP adaptée aux scripts WooCommerce, SMTP transactionnel et durcissement serveur.
+### Environnement local
+
+Le développement s’effectue sous XAMPP. HTTP peut être utilisé dans cet environnement local.
+
+### Démo portfolio publique
+
+La démo est publiée sur [https://seef-store.free.nf](https://seef-store.free.nf), en HTTPS, chez InfinityFree. Elle utilise uniquement des données de démonstration : aucune transaction ni aucun paiement réel ne doit y être effectué. Elle n’est pas destinée à l’exploitation d’un commerce réel.
+
+### Production commerciale réelle
+
+Une production commerciale réelle est hors périmètre de ce projet. Elle nécessiterait notamment un hébergement professionnel, des sauvegardes automatiques, un SMTP transactionnel, du monitoring, une politique CSP adaptée, une gestion juridique et de la confidentialité conforme, ainsi que de vrais moyens de paiement correctement sécurisés. Les contrôles décrits ici réduisent les risques sans constituer une garantie absolue de sécurité.
 
 ## Uploads
 

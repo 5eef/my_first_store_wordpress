@@ -10,6 +10,11 @@ SEEF STORE est une boutique WooCommerce trilingue conçue comme projet portfolio
 
 > Démonstration uniquement : la marque, les produits, les témoignages, les paiements et les livraisons sont fictifs. Aucune transaction réelle ne doit être effectuée.
 
+- Thème : **SEEF Store 1.2.5**
+- Plugin : **SEEF Store Core 1.1.2**
+- CI : **GitHub Actions active**
+- Déploiement : **manuel sur InfinityFree**
+
 ## Aperçu
 
 - expérience responsive de 320 px à 1920 px ;
